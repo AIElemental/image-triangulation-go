@@ -71,8 +71,9 @@ func avgColor(img *image.NRGBA, triang Triangle) color.Color {
   for y := 0; y < height; y++ {
     for x := 0; x < width; x++ {
       if triang.Contains(Point{x, y}) {
-        var r, g, b uint32
-        r, g, b, _ = img.At(x, y).RGBA()
+        var r, g, b uint8
+        var point color.NRGBA = img.At(x, y).(color.NRGBA)
+        r, g, b = point.R, point.G, point.B
         rSum += float64(r)
         gSum += float64(g)
         bSum += float64(b)
@@ -105,7 +106,7 @@ func Diff(base, img *image.NRGBA) float64 {
 
 func Initial(img *image.NRGBA) Approximation {
   width, height := img.Bounds().Dx(), img.Bounds().Dy()
-  xCells, yCells := 8, 8
+  xCells, yCells := 16, 16
   xStep, yStep := width / xCells, height / yCells
   triangles := make([]Triangle, 0)
   for x := 0; x < width; x += xStep {
@@ -114,18 +115,16 @@ func Initial(img *image.NRGBA) Approximation {
       p2 := Point{x + xStep, y}
       p3 := Point{x, y + yStep}
       triag := Triangle{p1, p2, p3, color.Black}
-      triag.Color = avgColor(img, triag)
       triangles = append(triangles, triag)
 
-      p1 = Point{x + xStep, y}
-      p2 = Point{x + xStep, y + yStep}
-      p3 = Point{x, y + yStep}
-      triag = Triangle{p1, p2, p3, color.Black}
-      triag.Color = avgColor(img, triag)
-      triangles = append(triangles, triag)
+      pp1 := Point{x + xStep, y}
+      pp2 := Point{x + xStep, y + yStep}
+      pp3 := Point{x, y + yStep}
+      triagp := Triangle{pp1, pp2, pp3, color.Black}
+      triangles = append(triangles, triagp)
     }
   }
-  return Approximation{triangles}
+  return AdjustColors(img, Approximation{triangles})
 }
 
 func Shake(img *image.NRGBA, approx Approximation) Approximation {
@@ -147,7 +146,7 @@ func randomMoveTriangle(width, height int, t Triangle) Triangle {
 }
 
 func randomMovePoint(width, height int, p Point) Point {
-  return p.move(rand.Intn(width/100)-width/80, rand.Intn(height/40)-width/80)
+  return p.move(rand.Intn(width/64)-width/128, rand.Intn(height/64)-width/128)
 }
 
 func timeTrack(start time.Time, name string) {

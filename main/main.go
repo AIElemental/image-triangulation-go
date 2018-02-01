@@ -12,7 +12,7 @@ import (
 
 func main() {
   defer timeTrack(time.Now(), "main.main")
-  const width, height = 256, 256
+  const width, height = 8, 8
 
   // Create a colored image of the given width and height.
   img := image.NewNRGBA(image.Rect(0, 0, width, height))
@@ -20,7 +20,7 @@ func main() {
   for y := 0; y < height; y++ {
     for x := 0; x < width; x++ {
       seed := 255
-      if (x - width / 2) * (x - width / 2) + (y - height / 2) * (y - height / 2) < 128 * 128 {
+      if (x - width / 2) * (x - width / 2) + (y - height / 2) * (y - height / 2) < 128*128 {
         seed = x + y
       }
       img.Set(x, y, color.NRGBA{
@@ -37,13 +37,15 @@ func main() {
 
   approxImg := image.NewNRGBA(image.Rect(0, 0, width, height))
   approximation.Apply(approxImg, bestApprox)
+  imagecreator.StoreImage(approxImg, fmt.Sprint("D:/go-image-tri/circle-approx-0.png"))
 
   version := 0
   shakes := make([]approximation.Approximation, 4)
   bestMinDiff := approximation.Diff(img, approxImg)
 
-  const iterations = 10
+  const iterations = 1
   for range make([]bool, iterations) {
+    start := time.Now()
     version++
     fmt.Println("iteration ", version)
     minDiffIdx := -1
@@ -66,6 +68,7 @@ func main() {
     updatedVariant := image.NewNRGBA(image.Rect(0, 0, width, height))
     approximation.Apply(updatedVariant, bestApprox)
     imagecreator.StoreImage(updatedVariant, fmt.Sprintf("D:/go-image-tri/circle-approx-%d.png", version))
+    timeTrack(start, fmt.Sprintf("iteration %d", version))
   }
 
   lastVariant := image.NewNRGBA(image.Rect(0, 0, width, height))
