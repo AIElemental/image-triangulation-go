@@ -40,8 +40,18 @@ func (p Point) move(x, y int) Point {
 
 func Apply(img *image.NRGBA, approx Approximation) {
   defer timeTrack(time.Now(), "approximation.Apply")
+  fillWhite(img)
   for _, v := range approx.Triangles {
     applySingle(img, v)
+  }
+}
+
+func fillWhite(img *image.NRGBA) {
+  width, height := img.Bounds().Dx(), img.Bounds().Dy()
+  for y := 0; y < height; y++ {
+    for x := 0; x < width; x++ {
+      img.Set(x, y, color.White)
+    }
   }
 }
 
